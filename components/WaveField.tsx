@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { tickAmbient } from "@/lib/ambient";
 
 const VERT = `#version 300 es
 in vec2 p;
@@ -114,6 +115,7 @@ export function WaveField() {
       if (now - last < 33) return;
       last = now;
       draw(now);
+      if (!reduce) tickAmbient(now);
     };
     const start = () => {
       cancelAnimationFrame(raf);

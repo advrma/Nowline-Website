@@ -15,26 +15,29 @@
 .phone__rig {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
+  /* --sx/--sy/--sz are the full spins between chapters, applied in screen space
+     before the resting pose (--bx/--by/--bz) and the pointer tilt (--rx/--ry). */
   transform:
+    rotateX(var(--sx, 0deg)) rotateY(var(--sy, 0deg)) rotateZ(var(--sz, 0deg))
     rotateX(calc(var(--bx, 0deg) + var(--rx, 0deg)))
     rotateY(calc(var(--by, 0deg) + var(--ry, 0deg)))
     rotateZ(var(--bz, 0deg));
   will-change: transform;
 }
-/* Titanium band: the highlight slides along the edge as the phone turns. */
+/* Cosmic Orange aluminium band: the highlight slides along the edge as the phone turns.
+   Slabs render from both sides so the edge stays solid while the phone spins. */
 .phone__slab {
   position: absolute; inset: 0;
   border-radius: 3.2em;
-  background: linear-gradient(90deg, #6f7278 0%, #cfd1d4 8%, #8f9298 20%, #f1f2f3 calc(46% - var(--lean) * 26%), #9da0a6 72%, #d9dadc 90%, #6c6f74 100%);
+  background: linear-gradient(90deg, #8a3a10 0%, #e98a4c 8%, #b2531b 20%, #ffc08f calc(46% - var(--lean) * 26%), #c25d20 72%, #ec9455 90%, #823610 100%);
   transform: translateZ(calc(var(--z) * -.1em));
-  backface-visibility: hidden;
 }
-.phone__slab:nth-child(9) { background: linear-gradient(160deg, #c9cbce, #8f9297); box-shadow: 0 2em 4em rgba(20, 28, 40, .28); }
+.phone__slab:nth-child(9) { background: linear-gradient(160deg, #e2803f, #a9481a); box-shadow: 0 2em 4em rgba(20, 28, 40, .28); }
 .phone__btn {
   position: absolute;
   width: .3em;
   border-radius: .2em;
-  background: linear-gradient(90deg, #7f8287, #e0e1e3, #7f8287);
+  background: linear-gradient(90deg, #a5491a, #f6a671, #a5491a);
   transform: translateZ(-.45em);
 }
 .phone__btn--action { left: -.2em; top: 17%; height: 1.9em; }
@@ -45,9 +48,87 @@
   position: absolute; inset: 0;
   border-radius: 3.2em;
   padding: .2em;
-  background: linear-gradient(calc(130deg + var(--lean) * 50deg), #f4f5f6 0%, #a3a6ab 18%, #eceded 42%, #878a90 68%, #e2e3e5 100%);
+  background: linear-gradient(calc(130deg + var(--lean) * 50deg), #ffc69c 0%, #c45a1d 18%, #f6a066 42%, #a2461a 68%, #f3a774 100%);
   transform-style: preserve-3d;
-  box-shadow: inset 0 0 0 .04em rgba(255, 255, 255, .75), inset 0 0 .3em rgba(0, 0, 0, .15);
+  box-shadow: inset 0 0 0 .04em rgba(255, 228, 205, .75), inset 0 0 .3em rgba(60, 20, 0, .2);
+}
+/* The display side disappears when the phone faces away, revealing the back. */
+.phone__front, .phone__bezel, .phone__screen, .phone__glare { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+
+/* ---------- Back: iPhone 17 Pro, Cosmic Orange ---------- */
+.phone__back {
+  position: absolute; inset: 0;
+  border-radius: 3.2em;
+  transform: translateZ(-.92em) rotateY(180deg);
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  background:
+    linear-gradient(calc(150deg - var(--lean) * 40deg), rgba(255, 214, 180, .55) 0%, rgba(255, 214, 180, 0) 32%, rgba(120, 40, 5, 0) 62%, rgba(120, 40, 5, .32) 100%),
+    linear-gradient(180deg, #ee8442 0%, #dd6a28 55%, #c95a1e 100%);
+  box-shadow: inset 0 0 0 .12em rgba(255, 190, 140, .55), inset 0 0 .6em rgba(110, 35, 0, .35);
+}
+/* Unibody brushing */
+.phone__back::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px);
+  pointer-events: none;
+}
+/* Glass panel for wireless charging */
+.phone__glass {
+  position: absolute;
+  left: 21%; right: 21%; top: 47%; height: 34%;
+  border-radius: 1.1em;
+  background: linear-gradient(170deg, rgba(255, 196, 150, .5), rgba(232, 112, 46, .25) 45%, rgba(186, 78, 22, .35));
+  box-shadow: inset 0 0 0 1px rgba(255, 210, 170, .35), inset 0 .1em .3em rgba(255, 255, 255, .15);
+}
+.phone__glass::after {
+  content: "";
+  position: absolute; left: 50%; top: 50%;
+  width: 5.2em; height: 5.2em; margin: -2.6em 0 0 -2.6em;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 .08em rgba(150, 55, 10, .18);
+}
+/* Full-width camera plateau, raised off the back */
+.phone__plateau {
+  position: absolute;
+  left: .35em; right: .35em; top: .35em;
+  height: 30%;
+  border-radius: 2.9em 2.9em 1.5em 1.5em;
+  transform: translateZ(.22em);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  background:
+    linear-gradient(calc(160deg - var(--lean) * 40deg), rgba(255, 220, 190, .5), rgba(255, 220, 190, 0) 40%),
+    linear-gradient(180deg, #f08a48, #d8672a);
+  box-shadow: 0 .35em .7em rgba(90, 30, 0, .35), inset 0 .08em 0 rgba(255, 225, 200, .7), inset 0 -.08em .1em rgba(120, 40, 5, .35);
+}
+.cam {
+  position: absolute;
+  width: 3.7em; height: 3.7em;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 34%, rgba(150, 170, 255, .55) 0 6%, transparent 9%),
+    radial-gradient(circle at 60% 64%, rgba(120, 255, 210, .25) 0 5%, transparent 9%),
+    radial-gradient(circle, #050608 0 30%, #191c24 31% 41%, #0b0c10 42% 58%, #3a3d44 60% 66%, #121316 68% 100%);
+  box-shadow: 0 0 0 .22em #c55b1f, 0 0 0 .3em rgba(255, 200, 160, .7), 0 .25em .5em .25em rgba(80, 25, 0, .45);
+}
+.cam--a { left: 1.15em; top: .95em; }
+.cam--b { left: 1.15em; top: 6.4em; }
+.cam--c { left: 5.55em; top: 3.65em; }
+.cam-flash { position: absolute; left: 10.4em; top: 1.7em; width: 1.25em; height: 1.25em; border-radius: 50%; background: radial-gradient(circle, #fff6e6, #f2dcb8 55%, #c9a879); box-shadow: 0 0 0 .1em rgba(120, 45, 5, .4); }
+.cam-lidar { position: absolute; left: 10.3em; top: 7.6em; width: 1.45em; height: 1.45em; border-radius: 50%; background: radial-gradient(circle at 40% 40%, #3a3550, #0b0b10 70%); box-shadow: 0 0 0 .1em rgba(120, 45, 5, .4); }
+.cam-mic { position: absolute; left: 13.6em; top: 5.2em; width: .32em; height: .32em; border-radius: 50%; background: #5a2408; }
+.phone__back-sheen {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(118deg, transparent calc(28% - var(--lean) * 22%), rgba(255, 236, 220, .28) calc(40% - var(--lean) * 22%), transparent calc(56% - var(--lean) * 22%));
+  transform: translateZ(.3em);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .phone__bezel {
   width: 100%; height: 100%;
@@ -491,10 +572,11 @@
   font-size: calc(var(--stage-pw) * .0757);
 }
 .lift {
-  position: absolute;
-  transform:
+  --off:
     translate3d(calc((50 - var(--lx)) * var(--stage-pw) * .0062), calc((50 - var(--ly)) * var(--stage-pw) * .0128), 0)
     scale(.45);
+  position: absolute;
+  transform: var(--off);
   /* Hidden once it has finished leaving: each card runs a backdrop blur + SVG
      refraction filter, and invisible ones would otherwise still pay for it every frame. */
   visibility: hidden;
@@ -502,6 +584,9 @@
 }
 .lift.is-on { visibility: visible; transform: none; transition: transform 1.25s var(--ease) var(--pd, 0s), visibility 0s; }
 .lift:not(.is-on) .lift__f { animation-play-state: paused; }
+/* While the phone spins between chapters, cards tuck back in and fly out once it lands. */
+.lifts.is-held .lift.is-on { visibility: hidden; transform: var(--off); transition: transform .35s var(--ease-in), visibility 0s .35s; }
+.lifts.is-held .lift.is-on .lift__f > * { opacity: 0; transition: opacity .25s; }
 .lift__f { animation: bob 7s ease-in-out infinite; }
 .lift:nth-child(2n) .lift__f { animation-duration: 8.5s; animation-delay: -2s; }
 .lift:nth-child(3n) .lift__f { animation-duration: 6.2s; animation-delay: -3.5s; }

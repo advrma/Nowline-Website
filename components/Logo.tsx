@@ -73,7 +73,7 @@ export function Logo({ size = 30 }: { size?: number }) {
   return (
     <span className="logo">
       <LogoMark size={size} glow={size >= 40} />
-      <span className="logo__word">nowline</span>
+      <span className="logo__word">Nowline</span>
     </span>
   );
 }

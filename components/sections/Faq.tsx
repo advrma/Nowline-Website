@@ -47,7 +47,7 @@ export function Footer() {
         <span>Made by a student at ASU.</span>
         <span>© {new Date().getFullYear()} Nowline</span>
       </div>
-      <div className="foot__giant" data-t="nowline" aria-hidden="true">nowline</div>
+      <div className="foot__giant" data-t="Nowline" aria-hidden="true">Nowline</div>
     </footer>
   );
 }

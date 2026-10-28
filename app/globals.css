@@ -287,8 +287,9 @@ section { position: relative; scroll-margin-top: 80px; }
   justify-content: center;
   padding: 0 14px;
   pointer-events: none;
-  opacity: 0;
-  animation: fade-down 1s var(--ease) calc(var(--pre) + .5s) forwards;
+  /* backwards, not forwards: a held animation would make the bar a backdrop
+     root, and the pill glass could no longer see the page behind it. */
+  animation: fade-down 1s var(--ease) calc(var(--pre) + .5s) backwards;
 }
 .nav__pill {
   pointer-events: auto;
@@ -304,6 +305,10 @@ section { position: relative; scroll-margin-top: 80px; }
   transition: width .8s var(--ease);
 }
 .nav.is-compact .nav__pill { width: min(820px, 100%); }
+.chroma-on .nav__pill {
+  -webkit-backdrop-filter: blur(14px) url(#chroma) saturate(1.7) brightness(1.04);
+  backdrop-filter: blur(14px) url(#chroma) saturate(1.7) brightness(1.04);
+}
 .nav__links { display: flex; gap: 30px; font-size: 14px; font-weight: 500; }
 .nav__links a { position: relative; color: var(--body); transition: color .2s; }
 .nav__links a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform .45s var(--ease); }

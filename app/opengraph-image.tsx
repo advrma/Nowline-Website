@@ -39,7 +39,7 @@ export default function OG() {
                 ))
               )}
             </div>
-            <span style={{ fontSize: 40, fontWeight: 700, color: "#111417", letterSpacing: -1 }}>nowline</span>
+            <span style={{ fontSize: 40, fontWeight: 700, color: "#111417", letterSpacing: -1 }}>Nowline</span>
           </div>
           <div style={{ fontSize: 96, fontWeight: 800, color: "#111417", letterSpacing: -4, lineHeight: 1 }}>Your day,</div>
           <div style={{ fontSize: 96, fontWeight: 800, color: "#0F7A66", letterSpacing: -4, lineHeight: 1, marginTop: -24 }}>handled.</div>

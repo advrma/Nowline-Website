@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogoMark } from "../Logo";
 import { Check } from "../icons";
+import { SCENES } from "../Diagrams";
 import { gsap, useGSAP, prefersReduced } from "@/lib/gsap";
 
 const ROWS = [
@@ -15,9 +16,16 @@ const ROWS = [
 
 const LINE_A = "Other planners show your day.".split(" ");
 const LINE_B = "Nowline runs it with you.".split(" ");
+const MORPH_AT = 1500;
+const NEXT_AT = 7000;
 
 export function Statement() {
   const root = useRef<HTMLElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const [tab, setTab] = useState(0);
+  const [now, setNow] = useState(false);
+  const [auto, setAuto] = useState(true);
+  const [seen, setSeen] = useState(false);
 
   // The line lights up word by word as you read down into it.
   useGSAP(
@@ -39,6 +47,39 @@ export function Statement() {
     { scope: root }
   );
 
+  // Only run the show while the card is on screen.
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.35 });
+    io.observe(box.current!);
+    return () => io.disconnect();
+  }, []);
+
+  // Each scenario opens on the typical planner, then morphs into Nowline.
+  useEffect(() => {
+    if (!seen) return;
+    if (prefersReduced()) {
+      setNow(true);
+      return;
+    }
+    const timers: number[] = [];
+    if (auto) {
+      setNow(false);
+      timers.push(window.setTimeout(() => setNow(true), MORPH_AT));
+      timers.push(window.setTimeout(() => setTab((t) => (t + 1) % SCENES.length), NEXT_AT));
+    }
+    return () => timers.forEach(clearTimeout);
+  }, [tab, auto, seen]);
+
+  const pick = (i: number) => {
+    setAuto(false);
+    setTab(i);
+    setNow(false);
+    if (!prefersReduced()) window.setTimeout(() => setNow(true), 700);
+    else setNow(true);
+  };
+
+  const Scene = SCENES[tab];
+
   return (
     <section className="st" id="compare" ref={root}>
       <p className="eyebrow st__eye" data-reveal>Why it&apos;s different</p>
@@ -48,24 +89,42 @@ export function Statement() {
         <span className="st__b">{LINE_B.map((w, i) => <span key={i} className="sw">{w} </span>)}</span>
       </p>
 
-      <div className="cmp gl gl--refract" data-reveal>
-        <div className="cmp__row cmp__row--head" aria-hidden="true">
-          <span />
-          <span className="cmp__old">Typical planners</span>
-          <span className="cmp__new"><LogoMark size={22} glow={false} /> Nowline</span>
-        </div>
-        <table className="sr-only">
-          <caption>Typical planners compared with Nowline</caption>
-          <thead><tr><th scope="col" /><th scope="col">Typical planners</th><th scope="col">Nowline</th></tr></thead>
-          <tbody>{ROWS.map(([k, a, b]) => <tr key={k}><th scope="row">{k}</th><td>{a}</td><td>{b}</td></tr>)}</tbody>
-        </table>
-        {ROWS.map(([k, a, b], i) => (
-          <div key={k} className="cmp__row" style={{ ["--i" as string]: i }} aria-hidden="true">
-            <span className="cmp__k">{k}</span>
-            <span className="cmp__old"><s>{a}</s></span>
-            <span className="cmp__new"><i className="cmp__tick"><Check size={12} /></i>{b}</span>
+      <div className="cx" ref={box} data-reveal>
+        <ol className="cx__list" aria-label="Typical planners compared with Nowline">
+          {ROWS.map(([k, a, b], i) => (
+            <li key={k} className={`cx__item ${tab === i ? "is-on" : ""}`}>
+              <button type="button" aria-pressed={tab === i} onClick={() => pick(i)}>
+                <span className="cx__n mono">0{i + 1}</span>
+                <span className="cx__k">{k}</span>
+              </button>
+              <div className="cx__detail">
+                <div>
+                  <p className="cx__old"><span className="mono">Typical</span> <s>{a}</s><span className="sr-only">.</span></p>
+                  <p className="cx__new"><span className="cx__tick"><Check size={11} /></span> <span className="sr-only">Nowline:</span> {b}</p>
+                </div>
+              </div>
+              {tab === i && auto && seen && <i className="cx__timer" />}
+            </li>
+          ))}
+        </ol>
+
+        <div className={`cx__stage gl gl--refract ${now ? "is-now" : ""}`}>
+          <div className="cx__bar">
+            <span className="cx__step mono">0{tab + 1} / 05</span>
+            <div className="cx__seg" role="group" aria-label="Show">
+              <button type="button" className={!now ? "is-on" : ""} onClick={() => { setAuto(false); setNow(false); }}>Typical planner</button>
+              <button type="button" className={now ? "is-on" : ""} onClick={() => { setAuto(false); setNow(true); }}><LogoMark size={14} glow={false} /> Nowline</button>
+              <i className="cx__seg-pill" aria-hidden="true" />
+            </div>
           </div>
-        ))}
+          <div className="cx__viz" key={tab} aria-hidden="true">
+            <Scene />
+          </div>
+          <p className="cx__cap">
+            <span className="cx__cap-a">{ROWS[tab][1]}</span>
+            <span className="cx__cap-b"><Check size={13} /> {ROWS[tab][2]}</span>
+          </p>
+        </div>
       </div>
     </section>
   );

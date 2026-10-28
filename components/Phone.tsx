@@ -29,6 +29,18 @@ export function Phone({ children, popouts, width = 300, className = "", style, l
         {Array.from({ length: SLABS }, (_, i) => (
           <div key={i} className="phone__slab" style={{ ["--z" as string]: i + 1 }} aria-hidden="true" />
         ))}
+        <div className="phone__back" aria-hidden="true">
+          <div className="phone__glass" />
+          <div className="phone__plateau">
+            <span className="cam cam--a" />
+            <span className="cam cam--b" />
+            <span className="cam cam--c" />
+            <span className="cam-flash" />
+            <span className="cam-lidar" />
+            <span className="cam-mic" />
+          </div>
+          <div className="phone__back-sheen" />
+        </div>
         <div className="phone__btn phone__btn--action" aria-hidden="true" />
         <div className="phone__btn phone__btn--volup" aria-hidden="true" />
         <div className="phone__btn phone__btn--voldn" aria-hidden="true" />

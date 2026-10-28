@@ -13,7 +13,7 @@ export function Preloader() {
         <LogoMark size={112} animated />
       </div>
       <div className="pre__word">
-        {"nowline".split("").map((c, i) => (
+        {"Nowline".split("").map((c, i) => (
           <span key={i} style={{ ["--i" as string]: i }}>{c}</span>
         ))}
       </div>

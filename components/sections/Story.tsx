@@ -18,9 +18,17 @@ const WAKES = [8 * 60, 11 * 60, 14 * 60];
 
 // Scroll progress (0..1 across the story) where each chapter takes over,
 // where the phone starts each glide, and which side it glides to.
-const CH_AT = [0, 0.08, 0.32, 0.54, 0.76];
+const CH_AT = [0, 0.1, 0.34, 0.56, 0.78];
 const MOVE_AT = [0.03, 0.27, 0.49, 0.71];
 const SIDE = [1, -1, 1, -1];
+// A different full turn on each glide: spin, front flip, reverse spin, corkscrew.
+// Values are absolute so scrubbing back unwinds them exactly.
+const SPINS: Record<string, string>[] = [
+  { "--sy": "360deg" },
+  { "--sx": "360deg" },
+  { "--sy": "0deg" },
+  { "--sy": "360deg", "--sz": "-360deg" },
+];
 const STATUS = ["9:41", "12:58", "2:04", "4:12", "3:20"];
 
 const CHAPTERS = [
@@ -78,11 +86,16 @@ export function Story() {
   const stage = useRef<HTMLDivElement>(null);
   const phone = useRef<HTMLDivElement>(null);
   const rig = useRef<HTMLDivElement>(null);
+  const phoneInner = useRef<HTMLDivElement>(null);
+  const blurRef = useRef<SVGFEGaussianBlurElement>(null);
   const ghosts = useRef<HTMLDivElement>(null);
   const cards = useRef<HTMLDivElement>(null);
   const chRef = useRef(0);
+  const movingRef = useRef(false);
 
   const [ch, setCh] = useState(0);
+  // True while the phone is mid-glide; chapter cards wait for it to land.
+  const [moving, setMoving] = useState(false);
   const [run, setRun] = useState(0);
   const [voice, setVoice] = useState(0);
   const [typed, setTyped] = useState("");
@@ -114,6 +127,11 @@ export function Story() {
             onUpdate: (s) => {
               let n = 0;
               for (let i = CH_AT.length - 1; i > 0; i--) if (s.progress >= CH_AT[i]) { n = i; break; }
+              const mv = MOVE_AT.some((a) => s.progress > a && s.progress < a + 0.09);
+              if (mv !== movingRef.current) {
+                movingRef.current = mv;
+                setMoving(mv);
+              }
               if (n !== chRef.current) {
                 chRef.current = n;
                 setCh(n);
@@ -152,14 +170,58 @@ export function Story() {
             .to(phone.current, { y: () => (wide ? vh() * 0.035 : -vh() * 0.11), scale: wide ? 0.95 : 0.76, duration: 0.045, ease: "sine.out" }, at)
             .to(phone.current, { y: () => (wide ? 0 : -vh() * 0.145), scale: wide ? 1 : 0.8, duration: 0.045, ease: "sine.in" }, at + 0.045)
             .to(rig.current, { "--by": `${-s * 24}deg`, "--bx": "5deg", "--bz": `${-s * 1.5}deg`, "--turn": -s * 0.7, duration: 0.09, ease: "power2.inOut" }, at)
+            .to(rig.current, { ...SPINS[i], duration: 0.09, ease: "power2.inOut" }, at)
             .to(ghosts.current, { x: () => -s * vw() * 0.06, duration: 0.09, ease: "power2.inOut" }, at);
         });
-        tl.to(phone.current, { x: 0, y: () => -vh() * 0.02, scale: 0.9, duration: 0.06, ease: "power2.inOut" }, 0.94)
-          .to(rig.current, { "--by": "-8deg", "--bx": "8deg", "--bz": "0deg", "--turn": 0.2, duration: 0.06, ease: "power2.inOut" }, 0.94);
+        // The phone holds its last chapter pose and scrolls away with the stage.
+        // Keep the timeline 1 long so every move stays aligned with its chapter.
+        tl.set({}, {}, 1);
       });
     },
     { scope: root }
   );
+
+  // Motion blur that follows the phone's real on-screen speed: travel and Y spins
+  // smear sideways, X flips smear vertically, the corkscrew both. Off at rest.
+  useEffect(() => {
+    if (prefersReduced()) return;
+    const el = phoneInner.current!;
+    const fe = blurRef.current!;
+    const ph = phone.current!;
+    const rg = rig.current!;
+    const deg = (k: string) => parseFloat(rg.style.getPropertyValue(k)) || 0;
+    let prev: number[] | null = null;
+    let bx = 0;
+    let by = 0;
+    let on = false;
+    const tick = () => {
+      const now = [Number(gsap.getProperty(ph, "x")) || 0, Number(gsap.getProperty(ph, "y")) || 0, deg("--sx"), deg("--sy"), deg("--sz")];
+      if (prev) {
+        const [dx, dy, dsx, dsy, dsz] = now.map((n, i) => Math.abs(n - prev![i]));
+        const tx = Math.min(12, dx * 0.45 + dsy * 0.32 + dsz * 0.18);
+        const ty = Math.min(12, dy * 0.45 + dsx * 0.32 + dsz * 0.18);
+        bx += (tx - bx) * 0.35;
+        by += (ty - by) * 0.35;
+      }
+      prev = now;
+      if (bx > 0.25 || by > 0.25) {
+        fe.setAttribute("stdDeviation", `${bx.toFixed(2)} ${by.toFixed(2)}`);
+        if (!on) {
+          el.style.filter = "url(#phone-mblur)";
+          on = true;
+        }
+      } else if (on) {
+        el.style.filter = "";
+        fe.setAttribute("stdDeviation", "0 0");
+        on = false;
+      }
+    };
+    gsap.ticker.add(tick);
+    return () => {
+      gsap.ticker.remove(tick);
+      el.style.filter = "";
+    };
+  }, []);
 
   // Each chapter plays its little story when it arrives, and resets when it leaves.
   useEffect(() => {
@@ -357,7 +419,12 @@ export function Story() {
         </div>
 
         <div className="st__phone" ref={phone}>
-          <div className="st__phone-in">
+          <svg className="sr-only" aria-hidden="true" focusable="false">
+            <filter id="phone-mblur" x="-25%" y="-12%" width="150%" height="124%" colorInterpolationFilters="sRGB">
+              <feGaussianBlur ref={blurRef} stdDeviation="0 0" />
+            </filter>
+          </svg>
+          <div className="st__phone-in" ref={phoneInner}>
             <Phone
               rigRef={rig}
               width="var(--stage-pw)"
@@ -371,7 +438,7 @@ export function Story() {
               <div className={`sv ${ch === 4 ? "is-on" : ""}`}><PaceScreen fixed={fixed} rough={rough} /></div>
             </Phone>
           </div>
-          <div className="lifts">
+          <div className={`lifts ${moving ? "is-held" : ""}`}>
             <Lift className="pop--voice" on={ch === 1 && voice >= 2} x={-62} y={56}>
               <div className="gl gl--refract card-voice">
                 <span className="card-voice__mic"><Mic size={12} /></span>

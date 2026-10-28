@@ -28,8 +28,21 @@
   margin-left: calc(var(--stage-pw) / -2);
   margin-top: calc(var(--stage-pw) * -1.09);
 }
-.stage .phone__rig { --bx: 7deg; --by: -18deg; --bz: 2deg; --turn: .45; }
+.stage .phone__rig { --bx: 7deg; --by: -18deg; --bz: 2deg; --turn: .45; --sx: 0deg; --sy: 0deg; --sz: 0deg; }
 .st__phone-in { animation: phone-in 1.9s var(--ease) calc(var(--pre) + .05s) both; }
+/* Idle levitation: the phone rises, sways and "breathes" while its shadow stays
+   grounded, tightening and fading as it lifts. Uses the individual translate /
+   rotate / scale properties so it composes with the scripted transforms. */
+.stage .phone { animation: levitate 6.5s ease-in-out infinite; }
+.stage .phone__shadow { animation: levitate-shadow 6.5s ease-in-out infinite; }
+@keyframes levitate {
+  0%, 100% { translate: 0 0; rotate: -.35deg; scale: 1; }
+  50% { translate: 0 -.85em; rotate: .45deg; scale: 1.008; }
+}
+@keyframes levitate-shadow {
+  0%, 100% { translate: 0 0; scale: 1; opacity: 1; }
+  50% { translate: 0 .85em; scale: .84; opacity: .62; }
+}
 
 /* ---------- Big type behind the phone ---------- */
 .hero__h1 {
