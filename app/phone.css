@@ -122,15 +122,17 @@
   top: 0; left: 0; right: 0;
   z-index: 4;
   height: 3em;
-  padding: .25em 1.6em 0 2.05em;
-  display: flex;
+  padding: .3em .7em 0;
+  /* iOS layout: time and icons each centred in the "ears" either side of the
+     island, whose width (plus breathing room) is reserved in the middle column. */
+  display: grid;
+  grid-template-columns: 1fr 6.3em 1fr;
   align-items: center;
-  justify-content: space-between;
 }
-.sb__time { font-size: .95em; font-weight: 650; letter-spacing: -.01em; transition: opacity .4s; }
-.sb__icons { display: flex; align-items: center; gap: .32em; }
-.sb__icons svg { width: auto; height: .72em; }
-.sb__icons svg:last-child { height: .78em; }
+.sb__time { grid-column: 1; justify-self: center; font-size: .95em; font-weight: 650; letter-spacing: -.01em; transition: opacity .4s; }
+.sb__icons { grid-column: 3; justify-self: center; display: flex; align-items: center; gap: .28em; }
+.sb__icons svg { width: auto; height: .66em; }
+.sb__icons svg:last-child { height: .74em; }
 
 /* Screen views cross-fade; each one is a full screen. */
 .sv {
